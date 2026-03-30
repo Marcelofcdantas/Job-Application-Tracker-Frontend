@@ -54,31 +54,41 @@ export default function Home() {
 
   return (
     <PageShell title="Welcome">
-      <div className="center-page">
-        <section className="single-column-card">
-          <h2 className="hero-title">Welcome to Job Tracker Application</h2>
+      <div className="premium-auth-layout">
+        <div className="ambient-orb ambient-orb-left" />
+        <div className="ambient-orb ambient-orb-right" />
 
-          <p className="hero-subtitle">Track your job applications in one place!</p>
+        <section className="single-column-card premium-card">
+          <div className="premium-card-glow" />
 
-          <div className="feature-list">
-            <div className="feature-item">
-              <div className="feature-icon">📋</div>
+          <div className="hero-block">
+            <span className="eyebrow-badge">Career workflow, simplified</span>
+            <h2 className="hero-title">Welcome to Job Tracker Application</h2>
+
+            <p className="hero-subtitle">
+              Track your job applications in one place!
+            </p>
+          </div>
+
+          <div className="feature-list premium-feature-list">
+            <div className="feature-item premium-feature-item">
+              <div className="feature-icon premium-feature-icon">📋</div>
               <div>
                 <h4>Organize Your Job Search</h4>
                 <p>Manage and track all your applications in one clean workspace.</p>
               </div>
             </div>
 
-            <div className="feature-item">
-              <div className="feature-icon">📊</div>
+            <div className="feature-item premium-feature-item">
+              <div className="feature-icon premium-feature-icon">📊</div>
               <div>
                 <h4>Monitor Your Progress</h4>
                 <p>See each application status and follow your process more clearly.</p>
               </div>
             </div>
 
-            <div className="feature-item">
-              <div className="feature-icon">✅</div>
+            <div className="feature-item premium-feature-item">
+              <div className="feature-icon premium-feature-icon">✅</div>
               <div>
                 <h4>Stay Updated</h4>
                 <p>Keep notes, reminders, interviews, and changes organized in one place.</p>
@@ -86,26 +96,26 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="divider" />
+          <div className="divider premium-divider" />
 
           {step === "login" ? (
-            <form className="stack" onSubmit={handleLogin}>
+            <form className="stack premium-form" onSubmit={handleLogin}>
               <h3 className="section-title">Login in Your Account</h3>
 
-              <label>
-                Email
+              <label className="input-group premium-input-group">
+                <span>Email</span>
                 <input
-                  placeholder="Email"
+                  placeholder="you@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </label>
 
-              <label>
-                Password
+              <label className="input-group premium-input-group">
+                <span>Password</span>
                 <input
-                  placeholder="Password"
+                  placeholder="••••••••"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -113,23 +123,23 @@ export default function Home() {
                 />
               </label>
 
-              <div className="inline-links">
+              <div className="remember-forgot">
                 <label className="remember-row">
                   <input type="checkbox" />
                   <span>Remember Me</span>
                 </label>
 
-                <Link className="link-button" to="/forgot-password">
+                <Link className="forgot-link" to="/forgot-password">
                   Forgot password?
                 </Link>
               </div>
 
-              <button className="primary-button" disabled={loading} type="submit">
-                {loading ? "Signing in..." : "Login"}
+              <button className="primary-button premium-button" disabled={loading}>
+                <span>{loading ? "Signing in..." : "Login"}</span>
               </button>
 
               <button
-                className="secondary-button full-width"
+                className="secondary-button premium-secondary-button"
                 type="button"
                 onClick={() => navigate("/register")}
               >
@@ -137,11 +147,11 @@ export default function Home() {
               </button>
             </form>
           ) : (
-            <form className="stack" onSubmit={handleVerifyMfa}>
+            <form className="stack premium-form" onSubmit={handleVerifyMfa}>
               <h3 className="section-title">Verify Your Access</h3>
 
-              <label>
-                Verification Code
+              <label className="input-group premium-input-group">
+                <span>Verification Code</span>
                 <input
                   placeholder="Enter the 6-digit code"
                   value={mfaCode}
@@ -150,17 +160,21 @@ export default function Home() {
                 />
               </label>
 
-              <button className="primary-button" disabled={loading} type="submit">
-                {loading ? "Verifying..." : "Verify Code"}
+              <button className="primary-button premium-button" disabled={loading}>
+                <span>{loading ? "Verifying..." : "Verify Code"}</span>
               </button>
 
-              <button className="secondary-button full-width" type="button" onClick={() => setStep("login")}>
+              <button
+                className="secondary-button premium-secondary-button"
+                type="button"
+                onClick={() => setStep("login")}
+              >
                 Back to login
               </button>
             </form>
           )}
 
-          {message ? <p className="feedback-message">{message}</p> : null}
+          {message ? <p className="feedback-message premium-feedback">{message}</p> : null}
         </section>
       </div>
     </PageShell>
