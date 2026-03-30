@@ -1,17 +1,13 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
-import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { setEmailForMfa, login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mfaCode, setMfaCode] = useState("");
-  const [step, setStep] = useState<"login" | "mfa">("login");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -22,31 +18,10 @@ export default function Home() {
 
     try {
       await api.post("/auth/login", { email, password });
-      setEmailForMfa(email);
-      setStep("mfa");
-      setMessage("We sent a verification code to your email.");
+
+      setMessage("Check your email to access your account.");
     } catch (error: any) {
       setMessage(error?.response?.data?.message || "Login failed.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerifyMfa(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const response = await api.post("/auth/mfa/verify", {
-        email,
-        code: mfaCode,
-      });
-
-      login(response.data.data.accessToken, response.data.data.refreshToken);
-      navigate("/applications");
-    } catch (error: any) {
-      setMessage(error?.response?.data?.message || "Invalid verification code.");
     } finally {
       setLoading(false);
     }
@@ -98,83 +73,61 @@ export default function Home() {
 
           <div className="divider premium-divider" />
 
-          {step === "login" ? (
-            <form className="stack premium-form" onSubmit={handleLogin}>
-              <h3 className="section-title">Login in Your Account</h3>
+          {/* 🔥 LOGIN FORM (SEM MFA) */}
+          <form className="stack premium-form" onSubmit={handleLogin}>
+            <h3 className="section-title">Login in Your Account</h3>
 
-              <label className="input-group premium-input-group">
-                <span>Email</span>
-                <input
-                  placeholder="you@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+            <label className="input-group premium-input-group">
+              <span>Email</span>
+              <input
+                placeholder="you@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </label>
+
+            <label className="input-group premium-input-group">
+              <span>Password</span>
+              <input
+                placeholder="••••••••"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </label>
+
+            <div className="remember-forgot">
+              <label className="remember-row">
+                <input type="checkbox" />
+                <span>Remember Me</span>
               </label>
 
-              <label className="input-group premium-input-group">
-                <span>Password</span>
-                <input
-                  placeholder="••••••••"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </label>
+              <Link className="forgot-link" to="/forgot-password">
+                Forgot password?
+              </Link>
+            </div>
 
-              <div className="remember-forgot">
-                <label className="remember-row">
-                  <input type="checkbox" />
-                  <span>Remember Me</span>
-                </label>
+            <button className="primary-button premium-button" disabled={loading}>
+              <span>{loading ? "Signing in..." : "Login"}</span>
+            </button>
 
-                <Link className="forgot-link" to="/forgot-password">
-                  Forgot password?
-                </Link>
-              </div>
+            <button
+              className="secondary-button premium-secondary-button"
+              type="button"
+              onClick={() => navigate("/register")}
+            >
+              Create Account
+            </button>
+          </form>
 
-              <button className="primary-button premium-button" disabled={loading}>
-                <span>{loading ? "Signing in..." : "Login"}</span>
-              </button>
-
-              <button
-                className="secondary-button premium-secondary-button"
-                type="button"
-                onClick={() => navigate("/register")}
-              >
-                Create Account
-              </button>
-            </form>
-          ) : (
-            <form className="stack premium-form" onSubmit={handleVerifyMfa}>
-              <h3 className="section-title">Verify Your Access</h3>
-
-              <label className="input-group premium-input-group">
-                <span>Verification Code</span>
-                <input
-                  placeholder="Enter the 6-digit code"
-                  value={mfaCode}
-                  onChange={(e) => setMfaCode(e.target.value)}
-                  required
-                />
-              </label>
-
-              <button className="primary-button premium-button" disabled={loading}>
-                <span>{loading ? "Verifying..." : "Verify Code"}</span>
-              </button>
-
-              <button
-                className="secondary-button premium-secondary-button"
-                type="button"
-                onClick={() => setStep("login")}
-              >
-                Back to login
-              </button>
-            </form>
+          {/* 🔥 FEEDBACK */}
+          {message && (
+            <p className="feedback-message premium-feedback">
+              {message}
+            </p>
           )}
-
-          {message ? <p className="feedback-message premium-feedback">{message}</p> : null}
         </section>
       </div>
     </PageShell>

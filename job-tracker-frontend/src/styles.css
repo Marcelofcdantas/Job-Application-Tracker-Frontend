@@ -383,12 +383,20 @@ select:focus {
 }
 
 .primary-button {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 48%, #1e40af 100%);
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
 .premium-button::before {
