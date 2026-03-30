@@ -1,52 +1,28 @@
-import { createContext, useContext, useMemo, useState } from "react";
 
-interface AuthContextValue {
-  isAuthenticated: boolean;
-  emailForMfa: string;
-  setEmailForMfa: (email: string) => void;
-  login: (accessToken: string, refreshToken: string) => void;
-  logout: () => void;
-}
+import { createContext, useContext, useState } from "react";
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = createContext<any>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [emailForMfa, setEmailForMfa] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(localStorage.getItem("accessToken"))
-  );
+export function AuthProvider({ children }: any) {
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
-  function login(accessToken: string, refreshToken: string) {
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-    setIsAuthenticated(true);
+  function login(t: string) {
+    localStorage.setItem("token", t);
+    setToken(t);
   }
 
   function logout() {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    setIsAuthenticated(false);
-    setEmailForMfa("");
+    localStorage.removeItem("token");
+    setToken(null);
   }
 
-  const value = useMemo(
-    () => ({
-      isAuthenticated,
-      emailForMfa,
-      setEmailForMfa,
-      login,
-      logout,
-    }),
-    [isAuthenticated, emailForMfa]
+  return (
+    <AuthContext.Provider value={{ token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const value = useContext(AuthContext);
-  if (!value) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
-  return value;
+  return useContext(AuthContext);
 }

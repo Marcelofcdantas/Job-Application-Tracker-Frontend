@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
@@ -130,7 +131,7 @@ export default function Home() {
               <button
                 className="secondary-button full-width"
                 type="button"
-                onClick={() => setMessage("Connect this button to your register endpoint when ready.")}
+                onClick={() => navigate("/register")}
               >
                 Create Account
               </button>
