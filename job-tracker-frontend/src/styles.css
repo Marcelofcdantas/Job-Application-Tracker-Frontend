@@ -492,6 +492,35 @@ select:focus {
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
 }
 
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  width: 220px;
+}
+
+.ghost-button {
+  background: transparent;
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filters-panel,
+.sort-panel {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
 .full-width {
   width: 100%;
 }
@@ -822,6 +851,60 @@ select:focus {
 .status-badge.interview { background: #22c55e; }
 .status-badge.rejected { background: #ef4444; color: white; }
 .status-badge.offer { background: #3b82f6; color: white; }
+.status-badge.references {
+  background: #8b5cf6;
+  color: white;
+}
+
+.status-badge {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: #6b7280;
+  justify-content: end;
+}
+
+@media (max-width: 768px) {
+  .status-legend {
+    display: none;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filters input,
+.filters select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 8px;
+  margin-bottom: 16px;
+}
 
 .empty-state {
   text-align: center;

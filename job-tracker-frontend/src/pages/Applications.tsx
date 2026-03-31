@@ -25,9 +25,20 @@ export default function Applications() {
     status: "Applied",
   });
 
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  const [filters, setFilters] = useState({
+    company: "",
+    position: "",
+    status: "",
+    platform: "",
+  });
+
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSort, setShowSort] = useState(false);
+
   const token = localStorage.getItem("token");
 
-  // 🔥 LOAD DATA
   async function loadApps() {
     try {
       const res = await api.get("/applications", {
@@ -45,7 +56,6 @@ export default function Applications() {
     loadApps();
   }, []);
 
-  // 🔥 CREATE / UPDATE
   async function handleSubmit() {
     try {
       if (editing) {
@@ -73,7 +83,6 @@ export default function Applications() {
     }
   }
 
-  // 🔥 DELETE
   async function handleDelete(id: string) {
     if (!confirm("Delete this application?")) return;
 
@@ -84,12 +93,37 @@ export default function Applications() {
     loadApps();
   }
 
-  // 🔥 EDIT
   function handleEdit(app: Application) {
     setEditing(app);
     setForm(app);
     setShowModal(true);
   }
+
+  const sortedApps = [...apps].sort((a, b) => {
+    const dateA = new Date(a.appliedDate).getTime();
+    const dateB = new Date(b.appliedDate).getTime();
+    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  });
+
+  const filteredApps = sortedApps.filter((app) => {
+    return (
+      app.company.toLowerCase().includes(filters.company.toLowerCase()) &&
+      app.position.toLowerCase().includes(filters.position.toLowerCase()) &&
+      app.platform.toLowerCase().includes(filters.platform.toLowerCase()) &&
+      (filters.status === "" || app.status === filters.status)
+    );
+  });
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case "Applied": return "🟡";
+    case "Interview": return "🟢";
+    case "References": return "🔍";
+    case "Offer": return "⭐";
+    case "Rejected": return "❌";
+    default: return "";
+  }
+}
 
   return (
     <PageShell title="My Applications">
@@ -98,16 +132,98 @@ export default function Applications() {
 
           <div className="card-header-vertical">
             <h2 className="section-title center">My Applications</h2>
-
-            <div className="header-actions">
-              <button
-                className="primary-button small"
-                onClick={() => setShowModal(true)}
-              >
-                + Add Application
-              </button>
-            </div>
           </div>
+
+          <div className="top-bar">
+            <input
+              className="search-input"
+              placeholder="🔍 Search..."
+              onChange={(e) =>
+                setFilters({ ...filters, company: e.target.value })
+              }
+            />
+
+            <button
+              className="ghost-button"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              Filters ▾
+            </button>
+
+            <button
+              className="ghost-button"
+              onClick={() => setShowSort(!showSort)}
+            >
+              Sort ▾
+            </button>
+
+            <div style={{ flex: 1 }} />
+
+            <button
+              className="primary-button small"
+              onClick={() => setShowModal(true)}
+            >
+              + Add Application
+            </button>
+          </div>
+
+          <div className="status-legend">
+            <span>🟡 Applied</span>
+            <span>🟢 Interview</span>
+            <span>🟣 References</span>
+            <span>🔵 Offer</span>
+            <span>🔴 Rejected</span>
+          </div>
+
+          {showFilters && (
+            <div className="filters-panel">
+              <input
+                placeholder="Company"
+                onChange={(e) =>
+                  setFilters({ ...filters, company: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Position"
+                onChange={(e) =>
+                  setFilters({ ...filters, position: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Platform"
+                onChange={(e) =>
+                  setFilters({ ...filters, platform: e.target.value })
+                }
+              />
+
+              <select
+                onChange={(e) =>
+                  setFilters({ ...filters, status: e.target.value })
+                }
+              >
+                <option value="">All Status</option>
+                <option>Applied</option>
+                <option>Interview</option>
+                <option>References</option>
+                <option>Rejected</option>
+                <option>Offer</option>
+              </select>
+            </div>
+          )}
+
+          {showSort && (
+            <div className="sort-panel">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+              >
+                <option value="desc">Newest first</option>
+                <option value="asc">Oldest first</option>
+              </select>
+            </div>
+          )}
 
           <table className="applications-table">
             <thead>
@@ -126,7 +242,7 @@ export default function Applications() {
                 <tr>
                   <td colSpan={6}>Loading...</td>
                 </tr>
-              ) : apps.length === 0 ? (
+              ) : filteredApps.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="empty-state">
                     <p>No applications yet.</p>
@@ -140,7 +256,7 @@ export default function Applications() {
                   </td>
                 </tr>
               ) : (
-                apps.map((app) => (
+                filteredApps.map((app) => (
                   <tr key={app.id}>
                     <td>{app.company}</td>
                     <td>{app.position}</td>
@@ -148,7 +264,7 @@ export default function Applications() {
 
                     <td>
                       <span className={`status-badge ${app.status.toLowerCase()}`}>
-                        {app.status}
+                        {getStatusIcon(app.status)} {app.status}
                       </span>
                     </td>
 
@@ -181,7 +297,6 @@ export default function Applications() {
         {showModal && (
           <div className="modal-overlay">
             <div className="modal">
-
               <h3>{editing ? "Edit Application" : "New Application"}</h3>
 
               <input
@@ -218,6 +333,7 @@ export default function Applications() {
                 <option>Interview</option>
                 <option>Rejected</option>
                 <option>Offer</option>
+                <option>References</option>
               </select>
 
               <div className="modal-actions">
