@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,13 +32,17 @@ type FormState = {
   position: string;
   platform: string;
   status: string;
+  appliedDate: string;
 };
+
+const today = new Date().toISOString().split("T")[0];
 
 const initialForm: FormState = {
   company: "",
   position: "",
   platform: "",
   status: "Applied",
+  appliedDate: today,
 };
 
 export default function Applications() {
@@ -47,6 +51,7 @@ export default function Applications() {
 
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Application | null>(null);
+  const editingIdRef = useRef<string | null>(null);
 
   const [form, setForm] = useState<FormState>(initialForm);
 
@@ -62,6 +67,8 @@ export default function Applications() {
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
+
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
 
@@ -99,40 +106,49 @@ export default function Applications() {
     } catch {
       alert("Error saving application");
     }
-  }
+}
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this application?")) return;
+      setDeleteId(id);
+  }
 
-    await api.delete(`/applications/${id}`, {
+  async function confirmDelete() {
+    if (!deleteId) return;
+
+    await api.delete(`/applications/${deleteId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    setDeleteId(null);
     loadApps();
   }
 
   function handleEdit(app: Application) {
     setEditing(app);
+
     setForm({
       company: app.company,
       position: app.position,
       platform: app.platform,
       status: app.status,
+      appliedDate: app.appliedDate
+        ? String(app.appliedDate).slice(0, 10)
+        : "",
     });
+
     setShowModal(true);
   }
 
   function openCreateModal() {
-    setEditing(null);
-    setForm(initialForm);
-    setShowModal(true);
-  }
+  setForm(initialForm);
+  setShowModal(true);
+}
 
   function closeModal() {
-    setShowModal(false);
-    setEditing(null);
-    setForm(initialForm);
-  }
+  setShowModal(false);
+  setEditing(null);
+  setForm(initialForm);
+}
 
   const sortedApps = [...apps].sort((a, b) => {
     const dateA = new Date(a.appliedDate).getTime();
@@ -290,6 +306,7 @@ export default function Applications() {
                   <option>Offer</option>
                   <option>Ghosted</option>
                 </select>
+
               </motion.div>
             )}
           </AnimatePresence>
@@ -322,7 +339,7 @@ export default function Applications() {
                   <th>Position</th>
                   <th>Platform</th>
                   <th>Status</th>
-                  <th>Applied Date</th>
+                  <th>Date Applied</th>
                   <th></th>
                 </tr>
               </thead>
@@ -385,7 +402,7 @@ export default function Applications() {
                       </td>
 
                       <td className="date-cell">
-                        {new Date(app.appliedDate).toLocaleDateString("en-CA")}
+                        {app.appliedDate.slice(0,10)}
                       </td>
 
                       <td className="actions">
@@ -467,6 +484,17 @@ export default function Applications() {
                   <option>Ghosted</option>
                 </select>
 
+                <label className="input-group">
+                  <span>Application Date</span>
+                  <input
+                    type="date"
+                    value={form.appliedDate || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, appliedDate: e.target.value })
+                    }
+                  />
+                </label>
+
                 <div className="modal-actions">
                   <button
                     type="button"
@@ -480,6 +508,47 @@ export default function Applications() {
                     type="button"
                     className="secondary-button"
                     onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {deleteId && (
+            <motion.div
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="modal"
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                transition={{ duration: 0.18 }}
+              >
+                <h3 style={{ marginBottom: 10 }}>Delete Application</h3>
+
+                <p style={{ opacity: 0.7, marginBottom: 20 }}>
+                  Are you sure you want to delete this application?
+                </p>
+
+                <div className="modal-actions">
+                  <button
+                    className="danger-button"
+                    onClick={confirmDelete}
+                  >
+                    Delete
+                  </button>
+
+                  <button
+                    className="secondary-button"
+                    onClick={() => setDeleteId(null)}
                   >
                     Cancel
                   </button>

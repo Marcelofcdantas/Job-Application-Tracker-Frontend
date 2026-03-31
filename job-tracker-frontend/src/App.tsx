@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import PrivateRoute from "./components/PrivateRoute";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   );
 }

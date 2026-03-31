@@ -73,14 +73,13 @@ export default function Home() {
 
           <div className="divider premium-divider" />
 
-          {/* 🔥 LOGIN FORM (SEM MFA) */}
           <form className="stack premium-form" onSubmit={handleLogin}>
             <h3 className="section-title">Login in Your Account</h3>
 
             <label className="input-group premium-input-group">
               <span>Email</span>
               <input
-                placeholder="you@email.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -122,7 +121,6 @@ export default function Home() {
             </button>
           </form>
 
-          {/* 🔥 FEEDBACK */}
           {message && (
             <p className="feedback-message premium-feedback">
               {message}
