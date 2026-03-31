@@ -121,6 +121,7 @@ function getStatusIcon(status: string) {
     case "References": return "🔍";
     case "Offer": return "⭐";
     case "Rejected": return "❌";
+    case "Ghosted": return "👻";
     default: return "";
   }
 }
@@ -173,6 +174,7 @@ function getStatusIcon(status: string) {
             <span>🟣 References</span>
             <span>🔵 Offer</span>
             <span>🔴 Rejected</span>
+            <span>⚪ Ghosted</span>
           </div>
 
           {showFilters && (
@@ -209,6 +211,7 @@ function getStatusIcon(status: string) {
                 <option>References</option>
                 <option>Rejected</option>
                 <option>Offer</option>
+                <option>Ghosted</option>
               </select>
             </div>
           )}
@@ -334,6 +337,7 @@ function getStatusIcon(status: string) {
                 <option>Rejected</option>
                 <option>Offer</option>
                 <option>References</option>
+                <option>Ghosted</option>
               </select>
 
               <div className="modal-actions">

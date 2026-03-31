@@ -856,6 +856,13 @@ select:focus {
   color: white;
 }
 
+
+.status-badge.ghosted {
+  background: #fff;
+  border: 1px solid #4e4e4e;
+  border-radius: 12px;    
+}
+
 .status-badge {
   animation: fadeIn 0.3s ease;
 }
