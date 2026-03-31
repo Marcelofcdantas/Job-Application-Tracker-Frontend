@@ -1,6 +1,22 @@
 import { useEffect, useState } from "react";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  Briefcase,
+  SearchCheck,
+  Ghost,
+  Pencil,
+  Trash2,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Search,
+  Plus,
+} from "lucide-react";
+import AutocompleteInput from "../components/AutocompleteInput";
 
 type Application = {
   id: string;
@@ -11,6 +27,20 @@ type Application = {
   appliedDate: string;
 };
 
+type FormState = {
+  company: string;
+  position: string;
+  platform: string;
+  status: string;
+};
+
+const initialForm: FormState = {
+  company: "",
+  position: "",
+  platform: "",
+  status: "Applied",
+};
+
 export default function Applications() {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,14 +48,9 @@ export default function Applications() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Application | null>(null);
 
-  const [form, setForm] = useState({
-    company: "",
-    position: "",
-    platform: "",
-    status: "Applied",
-  });
+  const [form, setForm] = useState<FormState>(initialForm);
 
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const [filters, setFilters] = useState({
     company: "",
@@ -34,6 +59,7 @@ export default function Applications() {
     platform: "",
   });
 
+  const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
 
@@ -68,15 +94,7 @@ export default function Applications() {
         });
       }
 
-      setShowModal(false);
-      setEditing(null);
-      setForm({
-        company: "",
-        position: "",
-        platform: "",
-        status: "Applied",
-      });
-
+      closeModal();
       loadApps();
     } catch {
       alert("Error saving application");
@@ -95,8 +113,25 @@ export default function Applications() {
 
   function handleEdit(app: Application) {
     setEditing(app);
-    setForm(app);
+    setForm({
+      company: app.company,
+      position: app.position,
+      platform: app.platform,
+      status: app.status,
+    });
     setShowModal(true);
+  }
+
+  function openCreateModal() {
+    setEditing(null);
+    setForm(initialForm);
+    setShowModal(true);
+  }
+
+  function closeModal() {
+    setShowModal(false);
+    setEditing(null);
+    setForm(initialForm);
   }
 
   const sortedApps = [...apps].sort((a, b) => {
@@ -106,7 +141,15 @@ export default function Applications() {
   });
 
   const filteredApps = sortedApps.filter((app) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      app.company.toLowerCase().includes(q) ||
+      app.position.toLowerCase().includes(q) ||
+      app.platform.toLowerCase().includes(q) ||
+      app.status.toLowerCase().includes(q);
+
     return (
+      matchesSearch &&
       app.company.toLowerCase().includes(filters.company.toLowerCase()) &&
       app.position.toLowerCase().includes(filters.position.toLowerCase()) &&
       app.platform.toLowerCase().includes(filters.platform.toLowerCase()) &&
@@ -114,250 +157,337 @@ export default function Applications() {
     );
   });
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "Applied": return "🟡";
-    case "Interview": return "🟢";
-    case "References": return "🔍";
-    case "Offer": return "⭐";
-    case "Rejected": return "❌";
-    case "Ghosted": return "👻";
-    default: return "";
+  function getStageIndex(status: string) {
+    const stages = ["Applied", "Interview", "References", "Offer"];
+    return stages.indexOf(status);
   }
-}
+
+  const companySuggestions = [...new Set(apps.map((a) => a.company).filter(Boolean))];
+  const positionSuggestions = [...new Set(apps.map((a) => a.position).filter(Boolean))];
+  const platformSuggestions = [...new Set(apps.map((a) => a.platform).filter(Boolean))];
+
+  function getStatusIcon(status: string) {
+    switch (status) {
+      case "Applied":
+        return <Clock size={14} />;
+      case "Interview":
+        return <SearchCheck size={14} />;
+      case "References":
+        return <CheckCircle size={14} />;
+      case "Offer":
+        return <Briefcase size={14} />;
+      case "Rejected":
+        return <XCircle size={14} />;
+      case "Ghosted":
+        return <Ghost size={14} />;
+      default:
+        return null;
+    }
+  }
 
   return (
     <PageShell title="My Applications">
       <div className="center-page">
-        <section className="single-column-card">
-
+        <section className="single-column-card applications-shell">
           <div className="card-header-vertical">
             <h2 className="section-title center">My Applications</h2>
           </div>
 
-          <div className="top-bar">
-            <input
-              className="search-input"
-              placeholder="🔍 Search..."
-              onChange={(e) =>
-                setFilters({ ...filters, company: e.target.value })
-              }
-            />
+          <div className="top-bar premium-top-bar">
+            <div className="search-wrap">
+              <Search size={16} />
+              <input
+                className="search-input premium-search"
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
 
             <button
-              className="ghost-button"
-              onClick={() => setShowFilters(!showFilters)}
+              type="button"
+              className="ghost-button toolbar-button"
+              onClick={() => setShowFilters((v) => !v)}
             >
-              Filters ▾
+              <SlidersHorizontal size={15} />
+              Filters
             </button>
 
             <button
-              className="ghost-button"
-              onClick={() => setShowSort(!showSort)}
+              type="button"
+              className="ghost-button toolbar-button"
+              onClick={() => setShowSort((v) => !v)}
             >
-              Sort ▾
+              <ArrowUpDown size={15} />
+              Sort
             </button>
 
             <div style={{ flex: 1 }} />
 
+            <div className="status-legend">
+              <span>🟡 Applied</span>
+              <span>🟢 Interview</span>
+              <span>🟣 References</span>
+              <span>🔵 Offer</span>
+              <span>🔴 Rejected</span>
+              <span>⚫ Ghosted</span>
+            </div>
+
             <button
-              className="primary-button small"
-              onClick={() => setShowModal(true)}
+              type="button"
+              className="primary-button small toolbar-primary"
+              onClick={openCreateModal}
             >
-              + Add Application
+              <Plus size={16} />
+              Add Application
             </button>
           </div>
 
-          <div className="status-legend">
-            <span>🟡 Applied</span>
-            <span>🟢 Interview</span>
-            <span>🟣 References</span>
-            <span>🔵 Offer</span>
-            <span>🔴 Rejected</span>
-            <span>⚪ Ghosted</span>
-          </div>
-
-          {showFilters && (
-            <div className="filters-panel">
-              <input
-                placeholder="Company"
-                onChange={(e) =>
-                  setFilters({ ...filters, company: e.target.value })
-                }
-              />
-
-              <input
-                placeholder="Position"
-                onChange={(e) =>
-                  setFilters({ ...filters, position: e.target.value })
-                }
-              />
-
-              <input
-                placeholder="Platform"
-                onChange={(e) =>
-                  setFilters({ ...filters, platform: e.target.value })
-                }
-              />
-
-              <select
-                onChange={(e) =>
-                  setFilters({ ...filters, status: e.target.value })
-                }
+          <AnimatePresence initial={false}>
+            {showFilters && (
+              <motion.div
+                className="filters-panel"
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
               >
-                <option value="">All Status</option>
-                <option>Applied</option>
-                <option>Interview</option>
-                <option>References</option>
-                <option>Rejected</option>
-                <option>Offer</option>
-                <option>Ghosted</option>
-              </select>
-            </div>
-          )}
+                <input
+                  placeholder="Company"
+                  value={filters.company}
+                  onChange={(e) =>
+                    setFilters({ ...filters, company: e.target.value })
+                  }
+                />
 
-          {showSort && (
-            <div className="sort-panel">
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
+                <input
+                  placeholder="Position"
+                  value={filters.position}
+                  onChange={(e) =>
+                    setFilters({ ...filters, position: e.target.value })
+                  }
+                />
+
+                <input
+                  placeholder="Platform"
+                  value={filters.platform}
+                  onChange={(e) =>
+                    setFilters({ ...filters, platform: e.target.value })
+                  }
+                />
+
+                <select
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters({ ...filters, status: e.target.value })
+                  }
+                >
+                  <option value="">All Status</option>
+                  <option>Applied</option>
+                  <option>Interview</option>
+                  <option>References</option>
+                  <option>Rejected</option>
+                  <option>Offer</option>
+                  <option>Ghosted</option>
+                </select>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence initial={false}>
+            {showSort && (
+              <motion.div
+                className="sort-panel"
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
               >
-                <option value="desc">Newest first</option>
-                <option value="asc">Oldest first</option>
-              </select>
-            </div>
-          )}
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as "desc" | "asc")}
+                >
+                  <option value="desc">Newest first</option>
+                  <option value="asc">Oldest first</option>
+                </select>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <table className="applications-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Position</th>
-                <th>Platform</th>
-                <th>Status</th>
-                <th>Applied Date</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
+          <div className="table-wrapper">
+            <table className="applications-table">
+              <thead>
                 <tr>
-                  <td colSpan={6}>Loading...</td>
+                  <th>Company</th>
+                  <th>Position</th>
+                  <th>Platform</th>
+                  <th>Status</th>
+                  <th>Applied Date</th>
+                  <th></th>
                 </tr>
-              ) : filteredApps.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="empty-state">
-                    <p>No applications yet.</p>
+              </thead>
 
-                    <button
-                      className="primary-button small"
-                      onClick={() => setShowModal(true)}
-                    >
-                      Add your first application
-                    </button>
-                  </td>
-                </tr>
-              ) : (
-                filteredApps.map((app) => (
-                  <tr key={app.id}>
-                    <td>{app.company}</td>
-                    <td>{app.position}</td>
-                    <td>{app.platform}</td>
-
-                    <td>
-                      <span className={`status-badge ${app.status.toLowerCase()}`}>
-                        {getStatusIcon(app.status)} {app.status}
-                      </span>
-                    </td>
-
-                    <td className="date-cell">
-                      {new Date(app.appliedDate).toLocaleDateString("en-CA")}
-                    </td>
-
-                    <td className="actions">
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6}>Loading...</td>
+                  </tr>
+                ) : filteredApps.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="empty-state">
+                      <p>No applications yet.</p>
                       <button
-                        className="secondary-button"
-                        onClick={() => handleEdit(app)}
+                        type="button"
+                        className="primary-button small"
+                        onClick={openCreateModal}
                       >
-                        Edit
-                      </button>
-
-                      <button
-                        className="danger-button"
-                        onClick={() => handleDelete(app.id)}
-                      >
-                        Delete
+                        Add your first application
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredApps.map((app) => (
+                    <motion.tr
+                      key={app.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <td>
+                        <div>{app.company}</div>
+                        <div className="timeline">
+                          {["Applied", "Interview", "References", "Offer"].map((stage, i) => (
+                            <div
+                              key={stage}
+                              className={`dot ${i <= getStageIndex(app.status) ? "active" : ""}`}
+                            />
+                          ))}
+                        </div>
+                      </td>
+
+                      <td>{app.position}</td>
+                      <td>{app.platform}</td>
+
+                      <td>
+                        <motion.span
+                          className={`status-badge ${app.status.toLowerCase()}`}
+                          whileHover={
+                            app.status === "Ghosted"
+                              ? { opacity: 0.6 }
+                              : { scale: 1.05 }
+                          }
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          {getStatusIcon(app.status)}
+                          <span style={{ marginLeft: 6 }}>{app.status}</span>
+                        </motion.span>
+                      </td>
+
+                      <td className="date-cell">
+                        {new Date(app.appliedDate).toLocaleDateString("en-CA")}
+                      </td>
+
+                      <td className="actions">
+                        <button
+                          type="button"
+                          className="secondary-button icon-button"
+                          onClick={() => handleEdit(app)}
+                        >
+                          <Pencil size={14} />
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          className="danger-button icon-button"
+                          onClick={() => handleDelete(app.id)}
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
 
-        {showModal && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>{editing ? "Edit Application" : "New Application"}</h3>
-
-              <input
-                placeholder="Company"
-                value={form.company}
-                onChange={(e) =>
-                  setForm({ ...form, company: e.target.value })
-                }
-              />
-
-              <input
-                placeholder="Position"
-                value={form.position}
-                onChange={(e) =>
-                  setForm({ ...form, position: e.target.value })
-                }
-              />
-
-              <input
-                placeholder="Platform"
-                value={form.platform}
-                onChange={(e) =>
-                  setForm({ ...form, platform: e.target.value })
-                }
-              />
-
-              <select
-                value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: e.target.value })
-                }
+        <AnimatePresence>
+          {showModal && (
+            <motion.div
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="modal"
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                transition={{ duration: 0.18 }}
               >
-                <option>Applied</option>
-                <option>Interview</option>
-                <option>Rejected</option>
-                <option>Offer</option>
-                <option>References</option>
-                <option>Ghosted</option>
-              </select>
+                <div className="modal-title-row">
+                  <h3>{editing ? "Edit Application" : "New Application"}</h3>
+                </div>
 
-              <div className="modal-actions">
-                <button
-                  className="primary-button"
-                  onClick={handleSubmit}
-                >
-                  Save
-                </button>
+                <AutocompleteInput
+                  placeholder="Company"
+                  value={form.company}
+                  onChange={(value) => setForm({ ...form, company: value })}
+                  suggestions={companySuggestions}
+                />
 
-                <button
-                  className="secondary-button"
-                  onClick={() => setShowModal(false)}
+                <AutocompleteInput
+                  placeholder="Position"
+                  value={form.position}
+                  onChange={(value) => setForm({ ...form, position: value })}
+                  suggestions={positionSuggestions}
+                />
+
+                <AutocompleteInput
+                  placeholder="Platform"
+                  value={form.platform}
+                  onChange={(value) => setForm({ ...form, platform: value })}
+                  suggestions={platformSuggestions}
+                />
+
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                  <option>Applied</option>
+                  <option>Interview</option>
+                  <option>Rejected</option>
+                  <option>Offer</option>
+                  <option>References</option>
+                  <option>Ghosted</option>
+                </select>
+
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={handleSubmit}
+                  >
+                    Save
+                  </button>
+
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </PageShell>
   );
