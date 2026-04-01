@@ -2,14 +2,18 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
+
 
 export default function Home() {
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -17,7 +21,8 @@ export default function Home() {
     setMessage("");
 
     try {
-      await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password, rememberMe });
+      login(res.data.token, rememberMe);
 
       setMessage("Check your email to access your account.");
     } catch (error: any) {
@@ -99,7 +104,11 @@ export default function Home() {
 
             <div className="remember-forgot">
               <label className="remember-row">
-                <input type="checkbox" />
+                <input type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+
                 <span>Remember Me</span>
               </label>
 

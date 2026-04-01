@@ -70,7 +70,9 @@ export default function Applications() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const token = localStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") ||
+    sessionStorage.getItem("token");
 
   async function loadApps() {
     try {
@@ -320,6 +322,9 @@ export default function Applications() {
                 exit={{ opacity: 0, height: 0, y: -6 }}
                 transition={{ duration: 0.18 }}
               >
+                <label className="sort-panel">
+                  Sort by: 
+                </label>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as "desc" | "asc")}
