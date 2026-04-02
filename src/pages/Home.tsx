@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -14,19 +14,34 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.verified) {
+      setMessage("Email verified! You can now log in.");
+    }
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setError("");
 
     try {
       const res = await api.post("/auth/login", { email, password, rememberMe });
-      login(res.data.token, rememberMe);
-
-      setMessage("Check your email to access your account.");
-    } catch (error: any) {
-      setMessage(error?.response?.data?.message || "Login failed.");
+        login(res.data.data.accessToken, rememberMe);
+        navigate("/applications"); 
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        setError(err.response.data.error);
+      } else if (err.response?.status === 401) {
+        setError("Invalid email or password");
+      } else {
+        setError("Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +116,12 @@ export default function Home() {
                 required
               />
             </label>
+
+            {error && (
+              <div className="error-box">
+                {error}
+              </div>
+            )}
 
             <div className="remember-forgot">
               <label className="remember-row">

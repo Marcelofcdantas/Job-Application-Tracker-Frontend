@@ -16,7 +16,8 @@ export default function Navbar() {
       <div className="navbar-inner">
         
         <Link to="/applications" className="logo">
-          JobTracker
+          <img src="/logo_transparent.png" alt="JobTracker logo" />
+          <span>JobTracker</span>
         </Link>
 
         <div className="nav-links desktop">

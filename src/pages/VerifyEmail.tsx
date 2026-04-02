@@ -14,10 +14,8 @@ export default function VerifyEmail() {
     }
 
     api.post("/auth/verify-email", { token })
-      .then((res) => {
-        localStorage.setItem("token", res.data.data.accessToken);
-        sessionStorage.removeItem("token");
-        navigate("/applications");
+      .then(() => {
+        navigate("/", { state: { verified: true } });
       })
       .catch(() => {
         alert("Invalid or expired link");

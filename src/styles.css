@@ -342,6 +342,26 @@ select {
     background 0.2s ease;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo img {
+  height: 100px;
+  width: auto;
+}
+
+.error-box {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
 .settings-container {
   display: flex;
   gap: 20px;
