@@ -21,6 +21,49 @@ body {
   min-height: 100vh;
 }
 
+/* ===== RESPONSIVE EXTRA ===== */
+
+@media (max-width: 768px) {
+
+  .responsive-top-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .responsive-top-bar .status-legend {
+    display: none;
+  }
+
+  .responsive-table {
+    overflow-x: auto;
+  }
+
+  .applications-table {
+    min-width: 700px;
+  }
+
+  .responsive-settings {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .responsive-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .responsive-sidebar button {
+    flex: 1;
+  }
+
+  .responsive-content {
+    max-width: 100%;
+  }
+
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -1036,6 +1079,7 @@ select:focus {
 @media (max-width: 640px) {
   .single-column-card {
     width: 100%;
+    max-width: 420px;
     padding: 24px 20px 26px;
   }
 
@@ -1066,8 +1110,33 @@ select:focus {
   }
 
   .premium-auth-layout {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ambient-orb {
+    display: none;
+  }
+
+  .feature-item {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .remember-forgot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .page-wrap {
+    padding: 20px 16px 40px;
+  }
+
+  input,
+  select {
+    font-size: 16px;
   }
 
   .hero-title {

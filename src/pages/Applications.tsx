@@ -211,7 +211,7 @@ export default function Applications() {
             <h2 className="section-title center">My Applications</h2>
           </div>
 
-          <div className="top-bar premium-top-bar">
+          <div className="top-bar premium-top-bar responsive-top-bar">
             <div className="search-wrap">
               <Search size={16} />
               <input
@@ -336,7 +336,7 @@ export default function Applications() {
             )}
           </AnimatePresence>
 
-          <div className="table-wrapper">
+          <div className="table-wrapper responsive-table">
             <table className="applications-table">
               <thead>
                 <tr>

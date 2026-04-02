@@ -27,9 +27,9 @@ export default function Settings() {
   return (
     <PageShell title="Settings">
     
-    <div className="settings-container">
+    <div className="settings-container responsive-settings">
 
-      <div className="settings-sidebar">
+      <div className="settings-sidebar responsive-sidebar">
 
         <button onClick={() => setTab("profile")}>Profile</button>
         <button onClick={() => setTab("security")}>Security</button>
@@ -37,7 +37,7 @@ export default function Settings() {
         <button onClick={() => setTab("appearance")}>Appearance</button>
       </div>
 
-      <div className="settings-content">
+      <div className="settings-content responsive-content">
 
         {tab === "profile" && (
           <>

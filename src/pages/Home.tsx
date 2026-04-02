@@ -4,10 +4,10 @@ import PageShell from "../components/PageShell";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
-
 export default function Home() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,15 +16,13 @@ export default function Home() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
-  const location = useLocation();
-
   useEffect(() => {
     if (location.state?.verified) {
       setMessage("Email verified! You can now log in.");
     }
-  }, []);
+  }, [location.state]);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
@@ -32,9 +30,10 @@ export default function Home() {
 
     try {
       const res = await api.post("/auth/login", { email, password, rememberMe });
-        login(res.data.data.accessToken, rememberMe);
-        navigate("/applications"); 
-    } catch (err: any) {
+
+      login(res.data.data.accessToken, rememberMe);
+      navigate("/applications");
+    } catch (err) {
       if (err.response?.status === 403) {
         setError(err.response.data.error);
       } else if (err.response?.status === 401) {
@@ -49,7 +48,7 @@ export default function Home() {
 
   return (
     <PageShell title="Welcome">
-      <div className="premium-auth-layout">
+      <div className="premium-auth-layout mobile-safe">
         <div className="ambient-orb ambient-orb-left" />
         <div className="ambient-orb ambient-orb-right" />
 
@@ -64,34 +63,6 @@ export default function Home() {
               Track your job applications in one place!
             </p>
           </div>
-
-          <div className="feature-list premium-feature-list">
-            <div className="feature-item premium-feature-item">
-              <div className="feature-icon premium-feature-icon">📋</div>
-              <div>
-                <h4>Organize Your Job Search</h4>
-                <p>Manage and track all your applications in one clean workspace.</p>
-              </div>
-            </div>
-
-            <div className="feature-item premium-feature-item">
-              <div className="feature-icon premium-feature-icon">📊</div>
-              <div>
-                <h4>Monitor Your Progress</h4>
-                <p>See each application status and follow your process more clearly.</p>
-              </div>
-            </div>
-
-            <div className="feature-item premium-feature-item">
-              <div className="feature-icon premium-feature-icon">✅</div>
-              <div>
-                <h4>Stay Updated</h4>
-                <p>Keep notes, reminders, interviews, and changes organized in one place.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="divider premium-divider" />
 
           <form className="stack premium-form" onSubmit={handleLogin}>
             <h3 className="section-title">Login in Your Account</h3>
@@ -117,19 +88,16 @@ export default function Home() {
               />
             </label>
 
-            {error && (
-              <div className="error-box">
-                {error}
-              </div>
-            )}
+            {error && <div className="error-box">{error}</div>}
+            {message && <div className="success-box">{message}</div>}
 
             <div className="remember-forgot">
               <label className="remember-row">
-                <input type="checkbox"
+                <input
+                  type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-
                 <span>Remember Me</span>
               </label>
 
@@ -139,7 +107,7 @@ export default function Home() {
             </div>
 
             <button className="primary-button premium-button" disabled={loading}>
-              <span>{loading ? "Signing in..." : "Login"}</span>
+              {loading ? "Signing in..." : "Login"}
             </button>
 
             <button
@@ -150,12 +118,6 @@ export default function Home() {
               Create Account
             </button>
           </form>
-
-          {message && (
-            <p className="feedback-message premium-feedback">
-              {message}
-            </p>
-          )}
         </section>
       </div>
     </PageShell>
