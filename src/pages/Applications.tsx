@@ -17,6 +17,7 @@ import {
   Plus,
 } from "lucide-react";
 import AutocompleteInput from "../components/AutocompleteInput";
+import { useNavigate } from "react-router-dom";
 
 type Application = {
   id: string;
@@ -45,6 +46,7 @@ const initialForm: FormState = {
   appliedDate: today,
 };
 
+
 export default function Applications() {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,8 @@ export default function Applications() {
   const [showSort, setShowSort] = useState(false);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const token =
     localStorage.getItem("token") ||
@@ -110,9 +114,17 @@ export default function Applications() {
     }
 }
 
-  async function handleDelete(id: string) {
-      setDeleteId(id);
-  }
+async function handleArchive(id: string) {
+  await api.post(`/applications/${id}/archive`, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  loadApps();
+}
+
+async function handleDelete(id: string) {
+    setDeleteId(id);
+}
 
   async function confirmDelete() {
     if (!deleteId) return;
@@ -125,7 +137,7 @@ export default function Applications() {
     loadApps();
   }
 
-  function handleEdit(app: Application) {
+function handleEdit(app: Application) {
     setEditing(app);
 
     setForm({
@@ -146,7 +158,7 @@ export default function Applications() {
   setShowModal(true);
 }
 
-  function closeModal() {
+function closeModal() {
   setShowModal(false);
   setEditing(null);
   setForm(initialForm);
@@ -370,6 +382,8 @@ export default function Applications() {
                 ) : (
                   filteredApps.map((app) => (
                     <motion.tr
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate(`/applications/${app.id}`)}
                       key={app.id}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -427,6 +441,17 @@ export default function Applications() {
                         >
                           <Trash2 size={14} />
                           Delete
+                        </button>
+
+                        <button
+                          type="button"
+                          className="secondary-button icon-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchive(app.id);
+                          }}
+                        >
+                          Archive
                         </button>
                       </td>
                     </motion.tr>

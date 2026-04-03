@@ -8,6 +8,8 @@ import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./pages/ResetPassword";
+import ApplicationDetails from "./pages/ApplicationDetails";
+import ArchivedApplications from "./pages/ArchivedApplications";
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
           </PrivateRoute>
         }
       />
+      <Route path="/applications/archived" element={<ArchivedApplications />} />
+      <Route path="/applications/:id" element={<ApplicationDetails />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />

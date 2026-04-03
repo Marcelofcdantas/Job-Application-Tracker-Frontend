@@ -21,7 +21,31 @@ body {
   min-height: 100vh;
 }
 
-/* ===== RESPONSIVE EXTRA ===== */
+.success-toast {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.single-column-card input,
+.single-column-card select {
+  margin-bottom: 10px;
+}
 
 @media (max-width: 768px) {
 
