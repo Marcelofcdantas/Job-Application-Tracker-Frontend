@@ -1,7 +1,38 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
+import { Calendar, User, Cpu, Brain, CheckCircle } from "lucide-react";
+
+const ALL_STAGES = [
+  { id: "SCREENING", label: "Screening", icon: Cpu },
+  { id: "RECRUITER_SCREEN", label: "Recruiter Screen", icon: User },
+  { id: "TECHNICAL_TEST", label: "Technical Test", icon: Cpu },
+  { id: "AI_INTERVIEW", label: "Interview (AI)", icon: Brain },
+  { id: "TECHNICAL_INTERVIEW", label: "Interview (Technical)", icon: Cpu },
+  { id: "MANAGER_INTERVIEW", label: "Interview (Manager)", icon: User },
+  { id: "REFERENCE_CHECK", label: "Reference Check", icon: CheckCircle },
+];
+
+function buildTimeline(selectedStages: string[]) {
+  return ["APPLIED", ...selectedStages, "OFFER"];
+}
+
+function formatStage(stage: string) {
+  const map: Record<string, string> = {
+    APPLIED: "Applied",
+    OFFER: "Offer",
+    SCREENING: "Screening",
+    RECRUITER_SCREEN: "Recruiter Screen",
+    TECHNICAL_TEST: "Technical Test",
+    AI_INTERVIEW: "Interview (AI)",
+    TECHNICAL_INTERVIEW: "Interview (Technical)",
+    MANAGER_INTERVIEW: "Interview (Manager)",
+    REFERENCE_CHECK: "Reference Check",
+  };
+  return map[stage];
+}
 
 export default function ApplicationDetails() {
   const { id } = useParams();
@@ -9,6 +40,10 @@ export default function ApplicationDetails() {
 
   const [form, setForm] = useState<any>(null);
   const [saved, setSaved] = useState(false);
+  const [selectedStages, setSelectedStages] = useState<string[]>([]);
+  const [currentStage, setCurrentStage] = useState<string>("APPLIED");
+  const [history, setHistory] = useState<any[]>([]);
+  const [interviewDate, setInterviewDate] = useState<string>("");
 
   const token =
     localStorage.getItem("token") ||
@@ -25,34 +60,74 @@ export default function ApplicationDetails() {
       });
 
       setForm(res.data);
+      setSelectedStages(res.data.stages || []);
+      setCurrentStage(res.data.currentStage || "APPLIED");
+      setHistory(res.data.history || []);
     } catch {
       alert("Error loading application");
     }
   }
 
   async function handleSave() {
-  try {
-    await api.put(`/applications/${id}`, form, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      await api.put(`/applications/${id}`, { 
+        ...form, 
+        stages: selectedStages, 
+        currentStage,
+        history,
+        interviewDate 
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    setSaved(true);
+      setSaved(true);
 
-    setTimeout(() => {
-      navigate("/applications");
-    }, 1000);
+      setTimeout(() => {
+        navigate("/applications");
+      }, 1000);
 
-  } catch {
-    alert("Error saving");
+    } catch {
+      alert("Error saving");
+    }
   }
-}
+
+  function toggleStage(stageId: string) {
+    setSelectedStages(prev => {
+      if (prev.includes(stageId)) {
+        return prev.filter(s => s !== stageId);
+      }
+      return [...prev, stageId];
+    });
+  }
+
+  function changeStage(stage: string) {
+    setCurrentStage(stage);
+
+    const isInterview =
+      stage === "TECHNICAL_INTERVIEW" ||
+      stage === "MANAGER_INTERVIEW";
+
+    const newEntry = {
+      stage,
+      date: isInterview && interviewDate
+        ? new Date(interviewDate).toISOString()
+        : new Date().toISOString()
+    };
+
+    setHistory(prev => [...prev, newEntry]);
+  }
+
+  const timeline = buildTimeline(selectedStages);
+  const currentIndex = timeline.indexOf(currentStage);
+
+  const isInterviewStage = currentStage === "TECHNICAL_INTERVIEW" || currentStage === "MANAGER_INTERVIEW";
 
   if (!form) return <PageShell title="Loading..." />;
 
   return (
     <PageShell title="Application Details">
       <div className="center-page">
-        <div className="single-column-card" style={{ maxWidth: 600 }}>
+        <div className="single-column-card" style={{ maxWidth: 750 }}>
 
           <h2>Application Details</h2>
 
@@ -70,6 +145,114 @@ export default function ApplicationDetails() {
 
           <label>Date Applied</label>
           <input value={form.appliedDate?.slice(0,10)} disabled />
+
+          <div style={{ marginTop: 20 }}>
+            <h3>Process Stages</h3>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {ALL_STAGES.map(stage => {
+                const active = selectedStages.includes(stage.id);
+                const Icon = stage.icon;
+                return (
+                  <button
+                    key={stage.id}
+                    onClick={() => toggleStage(stage.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 10px",
+                      borderRadius: 20,
+                      border: "1px solid #ccc",
+                      background: active ? "#2563eb" : "#f3f4f6",
+                      color: active ? "#fff" : "#333",
+                      cursor: "pointer",
+                      fontSize: 12
+                    }}
+                  >
+                    <Icon size={14} />
+                    {stage.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 40 }}>
+            <h3>Timeline</h3>
+
+            <div style={{ position: "relative", marginTop: 30 }}>
+              <div style={{
+                position: "absolute",
+                top: 10,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: "#e5e7eb"
+              }} />
+
+              <div style={{
+                position: "absolute",
+                top: 10,
+                left: 0,
+                height: 4,
+                width: `${(currentIndex / (timeline.length - 1)) * 100}%`,
+                background: "#2563eb",
+                transition: "width 0.4s ease"
+              }} />
+
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                position: "relative"
+              }}>
+                {timeline.map((stage, index) => {
+                  const isCurrent = stage === currentStage;
+                  const isCompleted = index < currentIndex;
+
+                  return (
+                    <div key={stage} style={{ textAlign: "center", flex: 1 }}>
+                      <div
+                        onClick={() => changeStage(stage)}
+                        style={{
+                          margin: "0 auto",
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
+                          background: isCurrent ? "#2563eb" : isCompleted ? "#16a34a" : "#d1d5db",
+                          cursor: "pointer"
+                        }}
+                      />
+                      <div style={{ fontSize: 10, marginTop: 6 }}>
+                        {formatStage(stage)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {isInterviewStage && (
+            <div style={{ marginTop: 20 }}>
+              <label>Interview Date</label>
+              <input
+                type="datetime-local"
+                value={interviewDate}
+                onChange={(e) => setInterviewDate(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div style={{ marginTop: 30 }}>
+            <h3>History</h3>
+            <ul style={{ fontSize: 12 }}>
+              {history.map((h, i) => (
+                <li key={i}>
+                  {formatStage(h.stage)} - {new Date(h.date).toLocaleString()}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <hr />
 
@@ -118,11 +301,7 @@ export default function ApplicationDetails() {
             <option value="remote">Remote</option>
           </select>
 
-          {saved && (
-            <div className="success-toast">
-                Changes saved successfully
-            </div>
-          )}
+          {saved && <div className="success-toast">Changes saved successfully</div>}
 
           <div style={{ marginTop: 20 }}>
             <button className="primary-button" onClick={handleSave}>
