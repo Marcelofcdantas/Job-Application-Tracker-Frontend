@@ -24,6 +24,7 @@ export default function Navbar() {
           <Link to="/" className={isActive("/")}>Home</Link>
           <Link to="/applications" className={isActive("/applications")}>Applications</Link>
           <Link to="/applications/archived">Archived</Link>
+          <Link to="/analytics" className={isActive("/analytics")}>Analytics</Link>
           <Link to="/settings" className={isActive("/settings")}>Settings</Link>
 
           <LogoutButton />

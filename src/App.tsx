@@ -10,6 +10,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./pages/ResetPassword";
 import ApplicationDetails from "./pages/ApplicationDetails";
 import ArchivedApplications from "./pages/ArchivedApplications";
+import Analytics from "./pages/Analytics";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+      <Route path="/analytics" element={<Analytics />} />
       <Route path="/applications/archived" element={<ArchivedApplications />} />
       <Route path="/applications/:id" element={<ApplicationDetails />} />
       <Route path="/settings" element={<Settings />} />

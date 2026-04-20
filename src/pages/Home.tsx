@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
+
 
 export default function Home() {
   const { login } = useAuth();
@@ -15,6 +17,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [show, setShow] = useState(false);
+
 
   useEffect(() => {
     if (location.state?.verified) {
@@ -31,7 +35,7 @@ export default function Home() {
     try {
       const res = await api.post("/auth/login", { email, password, rememberMe });
 
-      login(res.data.data.accessToken, rememberMe);
+      login(res.data.data.accessToken, email, rememberMe);
       navigate("/applications");
     } catch (err) {
       if (err.response?.status === 403) {
@@ -79,13 +83,18 @@ export default function Home() {
 
             <label className="input-group premium-input-group">
               <span>Password</span>
-              <input
-                placeholder="••••••••"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="input-with-icon">
+                <input
+                  placeholder="••••••••"
+                  type={show ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <span className="icon-right" onClick={() => setShow(!show)}>
+                  {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
             </label>
 
             {error && <div className="error-box">{error}</div>}

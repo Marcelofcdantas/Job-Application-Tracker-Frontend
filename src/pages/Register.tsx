@@ -9,6 +9,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [name, setName] = useState<string>("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -30,7 +31,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await api.post("/auth/register", { email, password });
+      await api.post("/auth/register", { name, email, password });
 
       setMessage("Account created successfully! Check your email.");
 
@@ -54,6 +55,17 @@ export default function Register() {
           <h2 className="hero-title">Create Your Account</h2>
 
           <form className="stack" onSubmit={handleSubmit}>
+            
+            <label className="input-group">
+              <span>Name / Nickname (optional)</span>
+              <input
+                placeholder="name"
+                value={name || ""}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </label>
+            
             <label className="input-group">
               <span>Email</span>
               <input

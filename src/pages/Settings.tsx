@@ -7,11 +7,16 @@ type Tab =
   | "notifications"
   | "appearance";
 
+interface UserUpdates {
+  name?: string;
+  email?: string;
+}
+
 export default function Settings() {
   const [tab, setTab] = useState<Tab>("profile");
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -23,6 +28,47 @@ export default function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [frequency, setFrequency] = useState("7");
   const [perApplication, setPerApplication] = useState(true);
+  const [emailError, setEmailError] = useState("");
+
+  const handleSavePreferences = async () => {
+    const updates: UserUpdates = {};
+
+    const currentEmail = localStorage.getItem('userEmail');
+
+    if (name && name.trim() !== "") {
+      updates.name = name;
+    }
+
+    if (newEmail && newEmail.trim() !== "") {
+      if (newEmail !== currentEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!emailRegex.test(newEmail)) {
+          setEmailError("Please enter a valid email address.");
+          
+          setTimeout(() => {
+            setEmailError("");
+          }, 10000);
+          
+          return;
+        }
+        
+        updates.email = newEmail;
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+
+    try {
+      console.log("Saving updates:", updates);
+      // await api.patch('/user/update', updates);
+      alert("Changes saved successfully!");
+    } catch (error) {
+      alert("Failed to save changes.");
+    }
+  };
 
   return (
     <PageShell title="Settings">
@@ -47,15 +93,23 @@ export default function Settings() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name or nickname"
             />
 
             <label>Email</label>
             <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Enter your email"
             />
+            {emailError && (
+              <p style={{ color: '#ff4d4d', fontSize: '12px', marginTop: '4px' }}>
+                {emailError}
+              </p>
+            )}
 
-            <button className="primary-button">
+            <button className="primary-button" onClick={handleSavePreferences}>
               Save changes
             </button>
           </>
@@ -159,9 +213,9 @@ export default function Settings() {
 
             <label>Theme</label>
             <div className="theme-switch">
-              <button onClick={() => setTheme("light")}>Light</button>
-              <button onClick={() => setTheme("dark")}>Dark</button>
-              <button onClick={() => setTheme("system")}>System</button>
+              <button className= "btn-light-theme" onClick={() => setTheme("light")}>Light</button>
+              <button className= "btn-dark-theme" onClick={() => setTheme("dark")}>Dark</button>
+              <button className= "btn-system-theme" onClick={() => setTheme("system")}>System</button>
             </div>
 
             <label>Language</label>

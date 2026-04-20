@@ -1,9 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
 import { Calendar, User, Cpu, Brain, CheckCircle } from "lucide-react";
+import { CalendarModal } from '../components/CalendarModal';
+import { motion, AnimatePresence } from "framer-motion";
 
 const ALL_STAGES = [
   { id: "SCREENING", label: "Screening", icon: Cpu },
@@ -14,6 +15,7 @@ const ALL_STAGES = [
   { id: "MANAGER_INTERVIEW", label: "Interview (Manager)", icon: User },
   { id: "REFERENCE_CHECK", label: "Reference Check", icon: CheckCircle },
 ];
+
 
 function buildTimeline(selectedStages: string[]) {
   return ["APPLIED", ...selectedStages, "OFFER"];
@@ -44,6 +46,7 @@ export default function ApplicationDetails() {
   const [currentStage, setCurrentStage] = useState<string>("APPLIED");
   const [history, setHistory] = useState<any[]>([]);
   const [interviewDate, setInterviewDate] = useState<string>("");
+  const [modalOpenId, setModalOpenId] = useState<string | null>(null);
 
   const token =
     localStorage.getItem("token") ||
@@ -53,16 +56,42 @@ export default function ApplicationDetails() {
     load();
   }, []);
 
+  const interviewData = {
+    id: id || "temp",
+    companyName: form?.company || "Company",
+    date: interviewDate ? new Date(interviewDate) : new Date(),
+    type: 'online' as const,
+  };
+
+  useEffect(() => {
+    if (!interviewDate) return;
+
+    const iso = new Date(interviewDate).toISOString();
+
+    setHistory(prev =>
+      prev.map(entry =>
+        entry.stage === currentStage && entry.date !== iso
+          ? { ...entry, date: iso }
+          : entry
+      )
+    );
+  }, [interviewDate, currentStage]);
+
   async function load() {
     try {
       const res = await api.get(`/applications/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setForm(res.data);
       setSelectedStages(res.data.stages || []);
       setCurrentStage(res.data.currentStage || "APPLIED");
       setHistory(res.data.history || []);
+      if (res.data.interviewDate) {
+        const date = new Date(res.data.interviewDate);
+        const offset = date.getTimezoneOffset();
+        date.setMinutes(date.getMinutes() - offset);
+        setInterviewDate(date.toISOString().slice(0, 16));
+      }
     } catch {
       alert("Error loading application");
     }
@@ -70,13 +99,17 @@ export default function ApplicationDetails() {
 
   async function handleSave() {
     try {
-      await api.put(`/applications/${id}`, { 
-        ...form, 
-        stages: selectedStages, 
+      const payload = {
+        ...form,
+        stages: selectedStages,
         currentStage,
         history,
-        interviewDate 
-      }, {
+        interviewDate: interviewDate
+          ? new Date(interviewDate).toISOString()
+          : null
+      };
+
+      await api.put(`/applications/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -107,14 +140,24 @@ export default function ApplicationDetails() {
       stage === "TECHNICAL_INTERVIEW" ||
       stage === "MANAGER_INTERVIEW";
 
-    const newEntry = {
-      stage,
-      date: isInterview && interviewDate
+    const dateToUse =
+      isInterview && interviewDate
         ? new Date(interviewDate).toISOString()
-        : new Date().toISOString()
-    };
+        : new Date().toISOString();
 
-    setHistory(prev => [...prev, newEntry]);
+    setHistory(prev => {
+      const existingIndex = prev.findIndex(h => h.stage === stage);
+
+      if (existingIndex !== -1) {
+        return prev.slice(0, existingIndex + 1).map((entry, i) =>
+          i === existingIndex
+            ? { ...entry, date: dateToUse }
+            : entry
+        );
+      }
+
+      return [...prev, { stage, date: dateToUse }];
+    });
   }
 
   const timeline = buildTimeline(selectedStages);
@@ -242,6 +285,25 @@ export default function ApplicationDetails() {
               />
             </div>
           )}
+
+          {isInterviewStage && interviewDate && (
+          <button 
+            type="button"
+            className="primary-button"
+            onClick={() => setModalOpenId("calendar-modal")}>
+            Add to Calendar
+          </button>
+          )}
+          
+          <AnimatePresence>
+          {modalOpenId === "calendar-modal" && (
+            <CalendarModal 
+              isOpen={true} 
+              onClose={() => setModalOpenId(null)} 
+              interview={interviewData} 
+            />
+          )}
+          </AnimatePresence>
 
           <div style={{ marginTop: 30 }}>
             <h3>History</h3>
